@@ -1,39 +1,40 @@
 # Install docker compose plugin
 
-# Update package index
+## Update package index
 sudo apt update
 
-# Add Docker's official GPG key
+## Add Docker's official GPG key
 sudo apt install ca-certificates curl
 sudo install -m 0755 -d /etc/apt/keyrings
 sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
 sudo chmod a+r /etc/apt/keyrings/docker.asc
 
-# Add the Docker repository
+## Add the Docker repository
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
   $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-# Update package index again
+## Update package index again
 sudo apt update
 
-# Install Docker Compose plugin
+## Install Docker Compose plugin
 sudo apt install docker-compose-plugin
 
+# Install supabase
 
-# Get the code
+## Get the code
 git clone --depth 1 https://github.com/supabase/supabase
-# Make your new supabase project directory
+## Make your new supabase project directory
 mkdir supabase-project
-# Tree should look like this
-# .
-# ├── supabase
-# └── supabase-project
-# Copy the compose files over to your project
+## Copy the compose files over to your project
 cp -rf supabase/docker/* supabase-project
-# Copy the fake env vars
+## Copy the fake env vars
 cp supabase/docker/.env.example supabase-project/.env
+
+## Update virables
+nano supabase-project/.env
+
 # Switch to your project directory
 cd supabase-project
 # Pull the latest images

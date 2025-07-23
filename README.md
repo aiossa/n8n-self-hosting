@@ -36,7 +36,7 @@ chmod 755 ~/.n8n
 
 Run the following command to start n8n in Docker. Replace your-domain.com with your actual domain name:
 
-    ```
+    ```bash
  sudo docker run -d \
   --name n8n \
   --restart unless-stopped \
@@ -50,7 +50,6 @@ Run the following command to start n8n in Docker. Replace your-domain.com with y
   --user "1000:1000" \
   -it \
   n8nio/n8n
-
     ```
   
 Or if you are using a subdomain, it should look like this:

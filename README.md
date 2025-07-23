@@ -37,13 +37,14 @@ chmod 755 ~/.n8n
 Run the following command to start n8n in Docker. Replace your-domain.com with your actual domain name:
 
     ```
-    sudo docker run -d \
+ sudo docker run -d \
   --name n8n \
   --restart unless-stopped \
   -p 5678:5678 \
   -e N8N_HOST=n8n.n8n-courses.ru \
   -e N8N_PORT=5678 \
   -e N8N_PROTOCOL=https \
+  -e N8N_EDITOR_BASE_URL="https://n8n.n8n-courses.ru/" \
   -e WEBHOOK_URL=https://n8n.n8n-courses.ru/ \
   -v ~/.n8n:/home/node/.n8n \
   --user "1000:1000" \

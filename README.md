@@ -21,24 +21,37 @@ Youtube Video Explanation:
 4. **Enable Docker to Start at Boot:**
     ```bash
     sudo systemctl enable docker
+5. **Prepare folders**
 
+# Create the .n8n directory in your home folder
+mkdir -p ~/.n8n
+
+# Set ownership to user ID 1000 (which matches the container user)
+sudo chown 1000:1000 ~/.n8n
+
+# Set proper permissions (read/write/execute for owner, read/execute for group)
+chmod 755 ~/.n8n
 
 ## Step 2: Starting n8n in Docker
 
 Run the following command to start n8n in Docker. Replace your-domain.com with your actual domain name:
 
-    ```bash
-    sudo docker run -d --restart unless-stopped -it \
-    --name n8n \
-    -p 5678:5678 \
-    -e N8N_HOST="your-domain.com" \
-    -e WEBHOOK_TUNNEL_URL="https://your-domain.com/" \
-    -e N8N_EDITOR_BASE_URL="https://your-domain.com/" \
-    -e WEBHOOK_URL="https://your-domain.com/" \
-    -v ~/.n8n:/root/.n8n \
-    n8nio/n8n
     ```
+    sudo docker run -d \
+  --name n8n \
+  --restart unless-stopped \
+  -p 5678:5678 \
+  -e N8N_HOST=n8n.n8n-courses.ru \
+  -e N8N_PORT=5678 \
+  -e N8N_PROTOCOL=https \
+  -e WEBHOOK_URL=https://n8n.n8n-courses.ru/ \
+  -v ~/.n8n:/home/node/.n8n \
+  --user "1000:1000" \
+  -it \
+  n8nio/n8n
 
+    ```
+  
 Or if you are using a subdomain, it should look like this:
 
     ```bash

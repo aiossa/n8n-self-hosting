@@ -2,9 +2,7 @@
 
 This guide provides step-by-step instructions to self-host [n8n](https://n8n.io), a free and open-source workflow automation tool, on a Linux server using Docker, Nginx, and Certbot for SSL with a custom domain name.
 
-Youtube Video Explanation: https://www.youtube.com/watch?v=Temh_Ddxp24
-![Screenshot 2024-08-03 125607](https://github.com/user-attachments/assets/908eaaf2-d66f-446e-8dd8-a3676da2bc89)
-
+Youtube Video Explanation: 
 
 ## Step 1: Installing Docker
 
@@ -35,6 +33,7 @@ Run the following command to start n8n in Docker. Replace your-domain.com with y
     -p 5678:5678 \
     -e N8N_HOST="your-domain.com" \
     -e WEBHOOK_TUNNEL_URL="https://your-domain.com/" \
+    -e N8N_EDITOR_BASE_URL="https://your-domain.com/" \
     -e WEBHOOK_URL="https://your-domain.com/" \
     -v ~/.n8n:/root/.n8n \
     n8nio/n8n
@@ -48,6 +47,7 @@ Or if you are using a subdomain, it should look like this:
     -p 5678:5678 \
     -e N8N_HOST="subdomain.your-domain.com" \
     -e WEBHOOK_TUNNEL_URL="https://subdomain.your-domain.com/" \
+    -e N8N_EDITOR_BASE_URL="https://subdomain.your-domain.com/" \
     -e WEBHOOK_URL="https://subdomain.your-domain.com/" \
     -v ~/.n8n:/root/.n8n \
     n8nio/n8n
@@ -81,21 +81,22 @@ Configure Nginx to reverse proxy the n8n web interface:
 2. **Paste the Following Configuration:**
     ```bash
     server {
-        listen 80;
-        server_name your-domain.com; // subdomain.your-domain.com if you have a subdomain
-
-        location / {
-            proxy_pass http://localhost:5678;
-            proxy_http_version 1.1;
-            chunked_transfer_encoding off;
-            proxy_buffering off;
-            proxy_cache off;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection "upgrade";
-            proxy_read_timeout  3600s;   # allow up to 1 hour for long-running n8n workflows
-            proxy_send_timeout 3600s;   # allow up to 1 hour for large incoming payloads or slow triggers
-        }
-    }
+       listen 80;
+       server_name n8n.n8n-courses.ru;
+   
+       location / {
+           proxy_pass http://localhost:5678;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection "upgrade";
+           proxy_set_header Host $host;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto $scheme;
+           proxy_read_timeout  3600s;
+           proxy_send_timeout 3600s;
+           proxy_buffering off;
+       }
+   }
     ```
     Replace your-domain.com with your actual domain.
 
@@ -130,26 +131,6 @@ Once completed, n8n will be accessible securely over HTTPS at your-domain.com.
 IMPORTANT: Make sure you follow the above steps in order. Step 5 will modify your /etc/nginx/sites-available/n8n.conf file to something like this:
 ![image](https://github.com/user-attachments/assets/344187ec-5bcf-4d97-ad35-21b6562182e5)
  
-
-## How to update n8n:
-
-You can follow the instructions here to update the version: https://docs.n8n.io/hosting/installation/docker/#updating
-
-Important: Take a backup of ~/.n8n:/home/node/.n8n
-To create a backup, you can copy ~/.n8n:/home/node/.n8n to your local or another directory on the same VM even before deleting the container. And then, after updating and spinning up a new container, if you see the data getting lost, you can replace ~/.n8n:/home/node/.n8n with the one you saved earlier.
-
-Ensure that your n8n instance is using a persistent volume or a mapped directory for its data storage. This is crucial because the workflows, user accounts, and configurations are stored in the database file (typically database.sqlite), which should be located in a directory that remains intact even when the container is removed.
-In your docker-compose.yml, you should have something like this:
-```bash
-volumes:
-- ~/.n8n:/home/node/.n8n
-```
-
-This mapping ensures that the .n8n directory on your host machine is used for data storage, preserving your workflows and configurations across container updates.
-
-When you stop and remove the n8n container, you are only deleting the container instance itself, not the data stored in the persistent volume. As long as the volume is correctly configured, your workflows and accounts should remain unaffected.
-
-But to avoid any chance of data loss you should take a backup of ~/.n8n:/home/node/.n8n before removing the container.
 
 ## Important Notes
 - Ensure your domain's DNS A record points to your server's IP address.

@@ -26,15 +26,12 @@
 
 5. **Подготовка папок:**
    ```bash
-   # Создание директории .n8n в домашней папке
-   mkdir -p ~/.n8n
+   # Создание директории n8n-data
+   sudo mkdir -p /opt/n8n-data
 
    # Установка владельца для пользователя ID 1000 (соответствует пользователю контейнера)
-   sudo chown 1000:1000 ~/.n8n
+   sudo chown -R 1000:1000 /opt/n8n-data
 
-   # Установка правильных разрешений (чтение/запись/выполнение для владельца, чтение/выполнение для группы)
-   chmod 755 ~/.n8n
-   ```
 
 ## Шаг 2: Запуск n8n в Docker
 
@@ -50,7 +47,7 @@ sudo docker run -d \
 -e N8N_PROTOCOL=https \
 -e N8N_EDITOR_BASE_URL="https://domain.ru/" \
 -e WEBHOOK_URL=https://domain.ru/ \
--v ~/.n8n:/home/node/.n8n \
+-v /opt/n8n-data:/home/node/.n8n \
 --user "1000:1000" \
 -it \
 n8nio/n8n
@@ -74,7 +71,7 @@ sudo docker run -d --restart unless-stopped -it \
 -e WEBHOOK_TUNNEL_URL="https://subdomain.your-domain.com/" \
 -e N8N_EDITOR_BASE_URL="https://subdomain.your-domain.com/" \
 -e WEBHOOK_URL="https://subdomain.your-domain.com/" \
--v ~/.n8n:/root/.n8n \
+-v /opt/n8n-data:/home/node/.n8n \
 n8nio/n8n
 ```
 

@@ -147,6 +147,8 @@ Certbot получит и установит SSL сертификат от Let's
 После завершения n8n будет безопасно доступен по HTTPS по адресу your-domain.com.
 
 **ВАЖНО:** Убедитесь, что вы выполняете вышеуказанные шаги по порядку. Шаг 5 изменит ваш файл /etc/nginx/sites-available/n8n.conf.
+<img width="2312" height="1546" alt="image" src="https://github.com/user-attachments/assets/5f8ac9b1-1855-4a1d-8879-d3185b1fb82d" />
+
 
 ## Важные замечания
 

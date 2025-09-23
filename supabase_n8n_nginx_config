@@ -1,0 +1,58 @@
+# n8n.n8n-courses.ru HTTPS/HTTP
+server {
+    listen 443 ssl;
+    server_name n8n.n8n-courses.ru;
+
+    ssl_certificate /etc/letsencrypt/live/n8n.n8n-courses.ru/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/n8n.n8n-courses.ru/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    location / {
+        proxy_pass http://localhost:5678;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+        proxy_buffering off;
+    }
+}
+
+server {
+    if ($host = n8n.n8n-courses.ru) {
+        return 301 https://$host$request_uri;
+    }
+    listen 80;
+    server_name n8n.n8n-courses.ru;
+    return 404;
+}
+
+# supabase.n8n-courses.ru HTTPS/HTTP
+server {
+    listen 443 ssl;
+    server_name supabase.n8n-courses.ru;
+
+    ssl_certificate /etc/letsencrypt/live/supabase.n8n-courses.ru/fullchain.pem;    # <-- insert your actual path
+    ssl_certificate_key /etc/letsencrypt/live/supabase.n8n-courses.ru/privkey.pem;  # <-- insert your actual path
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    location / {
+        proxy_pass https://localhost:8443; # Change to your Kong/Supabase host if needed
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_ssl_verify off; # only if upstream Kong uses self-signed certs
+    }
+}
+
+server {
+    listen 80;
+    server_name supabase.n8n-courses.ru;
+    return 301 https://$host$request_uri;
+}

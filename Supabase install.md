@@ -70,6 +70,10 @@ sudo certbot --nginx -d your-domain.com
 rm /etc/nginx/sites-available/n8n.conf 
 sudo nano /etc/nginx/sites-available/n8n.conf 
 ```
+## Удаляем стандартный конфиг nginx
+```
+sudo rm /etc/nginx/sites-enabled/default
+```
 
 ## Тестируем конфирурации Nginx и перезапускаем
 ```

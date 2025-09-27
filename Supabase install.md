@@ -1,9 +1,9 @@
-# Install docker compose plugin
+# Устанавливаем docker compose plugin
 
-## Update package index
+## Обновляем package index
 sudo apt update
 
-## Add Docker's official GPG key
+## Добавляем Docker's GPG key
 ```
 sudo apt install ca-certificates curl
 sudo install -m 0755 -d /etc/apt/keyrings
@@ -11,7 +11,7 @@ sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyring
 sudo chmod a+r /etc/apt/keyrings/docker.asc
 ```
 
-## Add the Docker repository
+## Добавляем Docker repository
 ```
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
@@ -19,29 +19,79 @@ echo \
   sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 ```
 
-## Update package index again
+## Обновляем package index
+```
 sudo apt update
+```
 
-## Install Docker Compose plugin
+## Устанавливаем Docker Compose plugin
+```
 sudo apt install docker-compose-plugin
+```
 
-# Install supabase
+# Устанавливаем supabase
 
-## Get the code
+## Клонируем репозиторий с гитхаба
+```
 git clone --depth 1 https://github.com/supabase/supabase
-## Make your new supabase project directory
+```
+## Создаём собственную supabase папку для проекта
+```
 mkdir supabase-project
-## Copy the compose files over to your project
+```
+## Копируем конфигурационные файлы дл docker compose файлы для вашего проекта
+```
 cp -rf supabase/docker/* supabase-project
-## Copy the fake env vars
+```
+
+## Либо используйте конфигурационный файл по умолчанию и редактируйте его, либо используйте конфигурационный файл из этого туториала:
+
+### Копируем предлагаемые переменные среды env
+```
 cp supabase/docker/.env.example supabase-project/.env
+```
 
-## Update virables
+ИЛИ
+## Обновляе переменные ручками (рекоммендую)
+[ссылка]([url](https://github.com/aiossa/n8n-self-hosting/blob/main/supabase%20env%20file)) на конфиг
+```
 nano supabase-project/.env
+```
 
-# Switch to your project directory
+# Настраиваем nginx
+## Получаем сертификаты для supabase
+```
+sudo certbot --nginx -d your-domain.com
+```
+
+## Редактируем настройки nginx'а
+[ссылка]([url](https://github.com/aiossa/n8n-self-hosting/blob/main/supabase_n8n_nginx_config))
+```
+rm /etc/nginx/sites-available/n8n.conf 
+sudo nano /etc/nginx/sites-available/n8n.conf 
+```
+
+## Тестируем конфирурации Nginx и перезапускаем
+```
+sudo nginx -t
+sudo systemctl restart nginx
+```
+
+# Переключаемся в наш репозиторий и запускаем supabase
+```
 cd supabase-project
-# Pull the latest images
+```
+# Загружаем последние образы контейнеров
+```
 docker compose pull
+```
+
+# Соединяем сети
+```
+docker network ls
+docker network connect supabase_default n8n
+```
 # Start the services (in detached mode)
+```
 docker compose up -d
+```

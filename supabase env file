@@ -49,11 +49,11 @@ PGRST_DB_SCHEMAS=public,storage,graphql_public
 # Auth - Configuration for the GoTrue authentication server.
 ############
 ## General
-SITE_URL=https://n8n.n8n-courses.ru:3000
+SITE_URL=https://supabase.n8n-courses.ru
 ADDITIONAL_REDIRECT_URLS=
 JWT_EXPIRY=3600
 DISABLE_SIGNUP=false
-API_EXTERNAL_URL=https://n8n.n8n-courses.ru:8000
+API_EXTERNAL_URL=https://supabase.n8n-courses.ru
 
 ## Mailer Config
 MAILER_URLPATHS_CONFIRMATION="/auth/v1/verify"
@@ -69,21 +69,24 @@ SMTP_HOST=supabase-mail
 SMTP_PORT=2500
 SMTP_USER=fake_mail_user
 SMTP_PASS=fake_mail_password
-SMTP_SENDER_NAME=N8N Courses
+SMTP_SENDER_NAME=fake_sender
 ENABLE_ANONYMOUS_USERS=false
 
 ## Phone auth
 ENABLE_PHONE_SIGNUP=true
 ENABLE_PHONE_AUTOCONFIRM=true
 
+
 ############
 # Studio - Configuration for the Dashboard
 ############
-STUDIO_DEFAULT_ORGANIZATION=N8N Courses Organization
-STUDIO_DEFAULT_PROJECT=N8N Courses Project
+
+STUDIO_DEFAULT_ORGANIZATION=Default Organization
+STUDIO_DEFAULT_PROJECT=Default Project
+
 STUDIO_PORT=3000
 # replace if you intend to use Studio outside of localhost
-SUPABASE_PUBLIC_URL=https://n8n.n8n-courses.ru:8000
+SUPABASE_PUBLIC_URL=https://supabase.n8n-courses.ru
 
 # Enable webp support
 IMGPROXY_ENABLE_WEBP_DETECTION=true
@@ -91,16 +94,19 @@ IMGPROXY_ENABLE_WEBP_DETECTION=true
 # Add your OpenAI API key to enable SQL Editor Assistant
 OPENAI_API_KEY=
 
+
 ############
 # Functions - Configuration for Functions
 ############
 # NOTE: VERIFY_JWT applies to all functions. Per-function VERIFY_JWT is not supported yet.
 FUNCTIONS_VERIFY_JWT=false
 
+
 ############
 # Logs - Configuration for Analytics
 # Please refer to https://supabase.com/docs/reference/self-hosting-analytics/introduction
 ############
+
 # Change vector.toml sinks to reflect this change
 # these cannot be the same value
 LOGFLARE_PUBLIC_ACCESS_TOKEN=your-super-secret-and-long-logflare-key-public

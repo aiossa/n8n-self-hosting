@@ -52,8 +52,9 @@ cp supabase/docker/.env.example supabase-project/.env
 ```
 
 ИЛИ
-## Обновляе переменные ручками (рекоммендую)
-[ссылка]([url](https://github.com/aiossa/n8n-self-hosting/blob/main/supabase%20env%20file)) на конфиг
+## Обновляем переменные ручками (рекоммендую)
+
+[ссылка](https://github.com/aiossa/n8n-self-hosting/blob/main/supabase%20env%20file) на конфиг
 ```
 nano supabase-project/.env
 ```
@@ -65,7 +66,7 @@ sudo certbot --nginx -d your-domain.com
 ```
 
 ## Редактируем настройки nginx'а
-[ссылка]([url](https://github.com/aiossa/n8n-self-hosting/blob/main/supabase_n8n_nginx_config))
+[ссылка](https://github.com/aiossa/n8n-self-hosting/blob/main/supabase_n8n_nginx_config)
 ```
 rm /etc/nginx/sites-available/n8n.conf 
 sudo nano /etc/nginx/sites-available/n8n.conf 

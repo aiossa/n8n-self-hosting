@@ -64,16 +64,23 @@ n8nio/n8n
 Или если вы используете поддомен, команда должна выглядеть так:
 
 ```bash
-sudo docker run -d --restart unless-stopped -it \
+sudo docker run -d \
 --name n8n \
+--restart unless-stopped \
 -p 5678:5678 \
--e N8N_HOST="subdomain.your-domain.com" \
--e WEBHOOK_TUNNEL_URL="https://subdomain.your-domain.com/" \
--e N8N_EDITOR_BASE_URL="https://subdomain.your-domain.com/" \
--e WEBHOOK_URL="https://subdomain.your-domain.com/" \
+-e N8N_HOST=subdomain.domain.ru \
+-e N8N_PORT=5678 \
+-e N8N_PROTOCOL=https \
+-e N8N_EDITOR_BASE_URL="https://subdomain.domain.ru/" \
+-e WEBHOOK_URL=https://subdomain.domain.ru/ \
 -v /opt/n8n-data:/home/node/.n8n \
+--user "1000:1000" \
+-it \
 n8nio/n8n
 ```
+
+
+
 
 ## Шаг 3: Установка Nginx
 

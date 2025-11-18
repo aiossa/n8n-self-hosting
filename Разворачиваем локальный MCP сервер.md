@@ -13,7 +13,7 @@ docker network connect n8n n8n_network
 ## 3. Запускаем MCP сервер, указывая ваш API ключ
 ```
 docker run -d \
-  --network supabase_default \
+  --network n8n_network \
   -e BRAVE_API_KEY=API_KEY \
   -e BRAVE_MCP_TRANSPORT="http" \
   --name brave-search-mcp \

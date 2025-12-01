@@ -118,19 +118,21 @@ Nginx используется как обратный прокси для пе�
           proxy_send_timeout 3600s;
           proxy_buffering off;
       }
-  }
+   }
    ```
    Замените your-domain.com на ваш фактический домен.
 
 3. **Активация конфигурации:**
-   ```bash
+   bash
+   ```
    sudo ln -s /etc/nginx/sites-available/n8n.conf /etc/nginx/sites-enabled/
    ```
 
    Если вы видите ошибку о том, что /etc/nginx/sites-enabled/ не существует, создайте её командой: `sudo mkdir /etc/nginx/sites-enabled/`
 
 4. **Тестирование конфигурации Nginx и перезапуск:**
-   ```bash
+   bash
+   ```
    sudo nginx -t
    sudo systemctl restart nginx
    ```
@@ -140,12 +142,14 @@ Nginx используется как обратный прокси для пе�
 Certbot получит и установит SSL сертификат от Let's Encrypt.
 
 1. **Установка Certbot и плагина Nginx:**
-   ```bash
+   bash
+   ```
    sudo apt install certbot python3-certbot-nginx
    ```
 
 2. **Получение SSL сертификата:**
-   ```bash
+   bash
+   ```
    sudo certbot --nginx -d your-domain.com
    // Если у вас поддомен, то это будет subdomain.your-domain.com
    ```

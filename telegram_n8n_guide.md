@@ -168,13 +168,24 @@ nano ~/telegram_app/Dockerfile
 Вставьте код:
 
 ```dockerfile
-FROM n8nio/n8n:latest
-
-USER root
+# Этап 1: Собираем Python и библиотеки
+FROM alpine:latest AS builder
 
 RUN apk add --no-cache python3 py3-pip && \
     pip3 install --break-system-packages telethon qrcode
 
+# Этап 2: Копируем в n8n
+FROM n8nio/n8n:latest
+
+USER root
+
+# Копируем Python полностью
+COPY --from=builder /usr/bin/python3* /usr/bin/
+COPY --from=builder /usr/lib/python3* /usr/lib/
+COPY --from=builder /usr/lib/libpython* /usr/lib/
+COPY --from=builder /usr/lib/lib*.so* /usr/lib/
+
+# Создаём папку
 RUN mkdir -p /telegram_app && \
     chown node:node /telegram_app
 

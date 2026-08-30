@@ -104,7 +104,6 @@ sudo docker run -d \
 
 ```bash
 sudo docker ps
-sudo docker logs -f n8n
 ```
 
 ---

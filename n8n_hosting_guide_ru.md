@@ -23,35 +23,24 @@ DNS-запись должна успеть распространиться **д
 
 ## Шаг 1. Установка Docker
 
-Не используйте `apt install docker.io` — это сборка из репозитория дистрибутива, она отстаёт по версиям и не содержит плагина `docker compose`. Ставим из официального репозитория Docker.
+Одной командой — это официальный скрипт Docker, он сам определяет дистрибутив, подключает репозиторий и ставит Docker Engine вместе с плагином `docker compose`:
 
-1. **Зависимости и ключ репозитория:**
-   ```bash
-   sudo apt update
-   sudo apt install -y ca-certificates curl gnupg
-   sudo install -m 0755 -d /etc/apt/keyrings
-   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-   sudo chmod a+r /etc/apt/keyrings/docker.gpg
-   ```
-   Для Debian замените `ubuntu` на `debian` в URL.
+```bash
+curl -fsSL https://get.docker.com | sudo sh
+```
 
-2. **Подключение репозитория:**
-   ```bash
-   echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-   ```
+Проверьте, что всё поднялось:
 
-3. **Установка:**
-   ```bash
-   sudo apt update
-   sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-   ```
+```bash
+sudo systemctl enable --now docker
+sudo docker version
+sudo docker compose version
+```
 
-4. **Автозапуск и проверка:**
-   ```bash
-   sudo systemctl enable --now docker
-   sudo docker version
-   sudo docker compose version
-   ```
+Пара замечаний:
+
+- Скрипт ставит последнюю стабильную версию и не спрашивает подтверждений. Если не хотите выполнять код из интернета вслепую — сначала посмотрите его: `curl -fsSL https://get.docker.com -o get-docker.sh && less get-docker.sh`, потом `sudo sh get-docker.sh`. Ручной способ с подключением репозитория описан [в документации Docker](https://docs.docker.com/engine/install/ubuntu/).
+- `sudo apt install docker.io` тоже поставит Docker, но плагина `docker compose` в этом пакете нет. Отдельный пакет `docker-compose-v2` есть только в Ubuntu 24.04; на Ubuntu 22.04 и Debian 12 его в репозитории нет, и [вариант B](#вариант-b--docker-compose-с-postgresql-рекомендуется) из шага 3 не заработает.
 
 ---
 

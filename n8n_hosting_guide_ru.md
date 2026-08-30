@@ -1,166 +1,197 @@
-# Самостоятельный хостинг N8N с поддержкой SSL на Linux сервере
+# Самостоятельный хостинг n8n с SSL на Linux-сервере
 
-Данное руководство содержит пошаговые инструкции по самостоятельному развертыванию [n8n](https://n8n.io) — бесплатного инструмента автоматизации рабочих процессов с открытым исходным кодом — на Linux сервере с использованием Docker, Nginx и Certbot для SSL с пользовательским доменным именем.
+Пошаговое развёртывание [n8n](https://n8n.io) — открытого инструмента автоматизации рабочих процессов — на своём Linux-сервере: Docker для запуска, Nginx как обратный прокси, Certbot для бесплатного SSL-сертификата от Let's Encrypt.
 
-## Шаг 1: Установка Docker
+Актуально для n8n 2.x (проверено на версии 2.36.8, август 2026).
 
-1. **Обновление индекса пакетов:**
+---
+
+## Что понадобится
+
+| Требование | Значение |
+|---|---|
+| Сервер | Ubuntu 22.04 / 24.04 или Debian 12, минимум 1 vCPU и 2 ГБ RAM |
+| Домен | A-запись, указывающая на IP сервера (`n8n.example.ru` → `1.2.3.4`) |
+| Доступ | root или пользователь с `sudo` |
+| Порты | открыты 80 и 443 |
+
+DNS-запись должна успеть распространиться до шага с Certbot, иначе сертификат не выпустится. Проверить: `dig +short n8n.example.ru`.
+
+Дальше по тексту вместо `n8n.example.ru` подставляйте свой домен — он встречается в четырёх местах: две переменные окружения, `server_name` в Nginx и аргумент Certbot.
+
+---
+
+## Шаг 1. Установка Docker
+
+```bash
+sudo apt update
+sudo apt install -y docker.io
+sudo systemctl enable --now docker
+```
+
+Проверьте, что Docker поднялся:
+
+```bash
+sudo docker version
+```
+
+---
+
+## Шаг 2. Каталог и переменные окружения
+
+1. **Каталог данных.** Здесь n8n будет хранить воркфлоу и настройки:
    ```bash
-   sudo apt update
+   sudo mkdir -p /opt/n8n-data
+   sudo chown -R 1000:1000 /opt/n8n-data
+   sudo chmod 700 /opt/n8n-data
+   ```
+   `1000:1000` — пользователь `node` внутри контейнера n8n.
+
+2. **Файл с переменными окружения.** Создайте `/opt/n8n.env`:
+   ```bash
+   sudo nano /opt/n8n.env
    ```
 
-2. **Установка Docker:**
-   ```bash
-   sudo apt install docker.io
+   Содержимое (подставьте свой домен):
+   ```ini
+   N8N_HOST=n8n.example.ru
+   N8N_PORT=5678
+   N8N_PROTOCOL=https
+   N8N_EDITOR_BASE_URL=https://n8n.example.ru/
+   N8N_WEBHOOK_URL=https://n8n.example.ru/
+   N8N_PROXY_HOPS=1
+   N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
    ```
 
-3. **Запуск Docker:**
+   Ограничьте доступ к файлу:
    ```bash
-   sudo systemctl start docker
+   sudo chmod 600 /opt/n8n.env
    ```
 
-4. **Включение автозапуска Docker при загрузке системы:**
-   ```bash
-   sudo systemctl enable docker
-   ```
+   Две переменные легко упустить:
 
-5. **Подготовка папок:**
-   ```bash
-   # Создание директории .n8n в домашней папке
-   mkdir -p ~/.n8n
+   - **`N8N_WEBHOOK_URL`** — публичный адрес для вебхуков. В инструкциях для n8n 1.x она называлась `WEBHOOK_URL`, это имя устарело.
+   - **`N8N_PROXY_HOPS=1`** — нужна, когда n8n работает за Nginx. Без неё не заработают OAuth-подключения вроде Google.
 
-   # Установка владельца для пользователя ID 1000 (соответствует пользователю контейнера)
-   sudo chown 1000:1000 ~/.n8n
+---
 
-   # Установка правильных разрешений (чтение/запись/выполнение для владельца, чтение/выполнение для группы)
-   chmod 755 ~/.n8n
-   ```
-
-## Шаг 2: Запуск n8n в Docker
-
-Выполните следующую команду для запуска n8n в Docker. Замените your-domain.com на ваше фактическое доменное имя:
+## Шаг 3. Запуск n8n
 
 ```bash
 sudo docker run -d \
- --name n8n \
- --restart unless-stopped \
- -p 5678:5678 \
- -e N8N_HOST=domain.ru \
- -e N8N_PORT=5678 \
- -e N8N_PROTOCOL=https \
- -e N8N_EDITOR_BASE_URL="https://domain.ru/" \
- -e WEBHOOK_URL=https://domain.ru/ \
- -v ~/.n8n:/home/node/.n8n \
- --user "1000:1000" \
- -it \
- n8nio/n8n
+  --name n8n \
+  --restart unless-stopped \
+  -p 127.0.0.1:5678:5678 \
+  --env-file /opt/n8n.env \
+  -v /opt/n8n-data:/home/node/.n8n \
+  --user 1000:1000 \
+  n8nio/n8n:2.36.8
 ```
 
-Данная команда выполняет следующие действия:
-
-- Загружает и запускает Docker образ n8n
-- Открывает n8n на порту 5678
-- Устанавливает переменные окружения для хоста n8n и URL туннеля webhook'ов
-- Монтирует директорию данных n8n для постоянного хранения
-- После выполнения команды n8n будет доступен по адресу your-domain.com:5678
-
-Или если вы используете поддомен, команда должна выглядеть так:
+Проверьте, что контейнер запустился:
 
 ```bash
-sudo docker run -d \
- --name n8n \
- --restart unless-stopped \
- -p 5678:5678 \
- -e N8N_HOST=subdomain.domain.ru \
- -e N8N_PORT=5678 \
- -e N8N_PROTOCOL=https \
- -e N8N_EDITOR_BASE_URL="https://subdomain.domain.ru/" \
- -e WEBHOOK_URL=https://subdomain.domain.ru/ \
- -v ~/.n8n:/home/node/.n8n \
- --user "1000:1000" \
- -it \
- n8nio/n8n
+sudo docker ps
+sudo docker logs -f n8n
 ```
 
-## Шаг 3: Установка Nginx
+---
 
-Nginx используется как обратный прокси для перенаправления запросов к n8n и обработки SSL терминации.
+## Шаг 4. Установка и настройка Nginx
 
-1. **Установка Nginx:**
+Nginx принимает запросы из интернета по HTTPS и передаёт их в n8n.
+
+1. **Установка:**
    ```bash
-   sudo apt install nginx
+   sudo apt install -y nginx
    ```
 
-## Шаг 4: Настройка Nginx
-
-Настройте Nginx для работы в качестве обратного прокси для веб-интерфейса n8n:
-
-1. **Создание нового файла конфигурации Nginx:**
+2. **Конфигурация.** Создайте файл:
    ```bash
    sudo nano /etc/nginx/sites-available/n8n.conf
    ```
 
-2. **Вставьте следующую конфигурацию:**
    ```nginx
    server {
-      listen 80;
-      server_name n8n.n8n-courses.ru;
-  
-      location / {
-          proxy_pass http://localhost:5678;
-          proxy_http_version 1.1;
-          proxy_set_header Upgrade $http_upgrade;
-          proxy_set_header Connection "upgrade";
-          proxy_set_header Host $host;
-          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-          proxy_set_header X-Forwarded-Proto $scheme;
-          proxy_read_timeout  3600s;
-          proxy_send_timeout 3600s;
-          proxy_buffering off;
-      }
+       listen 80;
+       server_name n8n.example.ru;
+
+       # Загрузка файлов в воркфлоу: без этой строки файлы больше 1 МБ не пройдут
+       client_max_body_size 100m;
+
+       location / {
+           proxy_pass http://127.0.0.1:5678;
+           proxy_http_version 1.1;
+
+           # Без этих двух строк редактор не показывает ход выполнения
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection "upgrade";
+
+           proxy_set_header Host              $host;
+           proxy_set_header X-Real-IP         $remote_addr;
+           proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto $scheme;
+           proxy_set_header X-Forwarded-Host  $host;
+
+           # Длинные воркфлоу не должны обрываться по таймауту
+           proxy_read_timeout 3600s;
+           proxy_send_timeout 3600s;
+           proxy_buffering off;
+       }
    }
    ```
-   Замените your-domain.com на ваш фактический домен.
 
-3. **Активация конфигурации:**
-   
+3. **Активация:**
    ```bash
    sudo ln -s /etc/nginx/sites-available/n8n.conf /etc/nginx/sites-enabled/
-   ```
-
-   Если вы видите ошибку о том, что /etc/nginx/sites-enabled/ не существует, создайте её командой: `sudo mkdir /etc/nginx/sites-enabled/`
-
-4. **Тестирование конфигурации Nginx и перезапуск:**
-   
-   ```bash
+   sudo rm -f /etc/nginx/sites-enabled/default
    sudo nginx -t
-   sudo systemctl restart nginx
+   sudo systemctl reload nginx
    ```
 
-## Шаг 5: Настройка SSL с помощью Certbot
+---
 
-Certbot получит и установит SSL сертификат от Let's Encrypt.
+## Шаг 5. SSL-сертификат через Certbot
 
-1. **Установка Certbot и плагина Nginx:**
-   
+1. **Установка:**
    ```bash
-   sudo apt install certbot python3-certbot-nginx
+   sudo apt install -y certbot python3-certbot-nginx
    ```
 
-2. **Получение SSL сертификата:**
-   
+2. **Выпуск сертификата:**
    ```bash
-   sudo certbot --nginx -d your-domain.com
-   // Если у вас поддомен, то это будет subdomain.your-domain.com
+   sudo certbot --nginx -d n8n.example.ru
    ```
+   Certbot попросит email, согласие с условиями и предложит включить редирект с HTTP на HTTPS — соглашайтесь. Дальше сертификат продлевается автоматически.
 
-Следуйте инструкциям на экране для завершения настройки SSL.
-После завершения n8n будет безопасно доступен по HTTPS по адресу your-domain.com.
+Выполняйте шаги по порядку: Certbot сам дописывает в конфиг Nginx блок для HTTPS.
 
-**ВАЖНО:** Убедитесь, что вы выполняете вышеуказанные шаги по порядку. Шаг 5 изменит ваш файл /etc/nginx/sites-available/n8n.conf.
+---
 
-## Важные замечания
+## Шаг 6. Проверка
 
-- Убедитесь, что DNS A-запись вашего домена указывает на IP-адрес вашего сервера
-- Разрешите порты 80 (HTTP), 443 (HTTPS) и 5678 (n8n) в брандмауэре вашего сервера
-- Nginx обрабатывает SSL терминацию, поэтому он перенаправляет запросы к экземпляру n8n по HTTP внутри системы
+Откройте `https://n8n.example.ru` — откроется форма создания аккаунта владельца.
+
+---
+
+## Обновление n8n
+
+```bash
+sudo docker pull n8nio/n8n:2.37.0        # подставьте нужный тег
+sudo docker stop n8n
+sudo docker rm n8n
+```
+
+Затем заново выполните команду `docker run` из шага 3, поменяв в ней тег версии. Воркфлоу и настройки останутся на месте — они лежат в `/opt/n8n-data`.
+
+---
+
+## Резервное копирование
+
+Всё, что нужно сохранить, лежит в `/opt/n8n-data` и `/opt/n8n.env`. Контейнер на время копирования лучше остановить:
+
+```bash
+sudo docker stop n8n
+sudo tar czf ~/n8n-backup-$(date +%F).tar.gz /opt/n8n-data /opt/n8n.env
+sudo docker start n8n
+```
